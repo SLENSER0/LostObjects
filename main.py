@@ -7,9 +7,13 @@ import numpy as np
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 model.classes = 0  # распознавать только людей
 
-video = 'test/1.mp4'
-img = '' # кадр, в котором нет потерянных предметов и людей
+# модель для распозрнания объектов в рамках
+model1 = torch.hub.load('ultralytics/yolov5', 'yolov5m')
 
+alert = False
+
+video = 'test/3.mp4'
+img = '0.png' # кадр, в котором нет потерянных предметов и людей
 cap = cv2.VideoCapture(video)
 
 # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -35,6 +39,8 @@ while True:
         first_frame_gray = cv2.cvtColor(first_frame.copy(), cv2.COLOR_BGR2GRAY)
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+
+        # Различие в кадрах
         (score, diff) = structural_similarity(first_frame_gray, frame_gray, full=True)
         diff = (diff * 255).astype("uint8")
         diff_box = cv2.merge([diff, diff, diff])
@@ -47,12 +53,28 @@ while True:
 
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
-            if cv2.contourArea(c) > 300 and not (370 < x < 700 and 30 < y < 100):
-                # not (400 < x < 600 and 40 < y < 90) не выделять циферблат
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-        if contours != 0:
-            print('Кто-то оставил предмет')
+            # Найти все отличия
+            # if cv2.contourArea(c) > 300 and not (370 < x < 700 and 30 < y < 100):
+            #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+            if cv2.contourArea(c) > 350:
+                cropped = frame[y-10:y+h+10,x-10:x+w+10]
+                r2 = model1(cropped)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                try:
+                    k = r2.pandas().xyxy[0].value_counts('name').iloc[0]
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 255), 3)
+                    if not alert:
+                        print('Кто-то оставил предмет')
+                        alert = True
+                except:
+                    pass
+    else:
+        alert = False
+
+        # if contours != 0:
+        #     print('Кто-то оставил предмет')
 
     cv2.imshow('frame2', frame)
     # video.write(frame.copy())
