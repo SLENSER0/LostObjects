@@ -12,8 +12,8 @@ model1 = torch.hub.load('ultralytics/yolov5', 'yolov5m')
 
 alert = False
 
-video = 'test/3.mp4'
-img = '0.png' # кадр, в котором нет потерянных предметов и людей
+video = ''
+img = '' # кадр, в котором нет потерянных предметов и людей
 cap = cv2.VideoCapture(video)
 
 # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
