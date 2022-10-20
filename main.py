@@ -54,10 +54,6 @@ while True:
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
 
-            # Найти все отличия
-            # if cv2.contourArea(c) > 300 and not (370 < x < 700 and 30 < y < 100):
-            #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
             if cv2.contourArea(c) > 350:
                 cropped = frame[y-10:y+h+10,x-10:x+w+10]
                 r2 = model1(cropped)
